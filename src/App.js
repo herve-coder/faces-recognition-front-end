@@ -24,7 +24,7 @@ const particlesOptions = {
 const initialState = {
   input: "",
   imageUrl: "",
-  box: {},
+  boxes: [],
   route: "signin",
   isSignedIn: false,
   user: {
@@ -42,7 +42,7 @@ class App extends Component {
     this.state = {
       input: "",
       imageUrl: "",
-      box: {},
+      boxes: [],
       route: "signin",
       isSignedIn: false,
       user: {
@@ -66,22 +66,29 @@ class App extends Component {
       }
     });
   };
+
   calculateFaceLocation = data => {
-    const clarifaiFace =
-      data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById("inputimage");
-    const width = Number(image.width);
-    const height = Number(image.height);
-    return {
-      topRow: clarifaiFace.top_row * height,
-      leftCol: clarifaiFace.left_col * width,
-      bottomRow: height - clarifaiFace.bottom_row * height,
-      rightCol: width - clarifaiFace.right_col * width
-    };
+    const clarifaiFace = data.outputs[0].data.regions;
+    // console.log(clarifaiFace);
+
+    const boxesArray = clarifaiFace.map(region => {
+      const box = region.region_info.bounding_box;
+
+      const image = document.getElementById("inputimage");
+      const width = Number(image.width);
+      const height = Number(image.height);
+      return {
+        topRow: box.top_row * height,
+        leftCol: box.left_col * width,
+        bottomRow: height - box.bottom_row * height,
+        rightCol: width - box.right_col * width
+      };
+    });
+    return boxesArray;
   };
 
-  displayFaceBox = box => {
-    this.setState({ box: box });
+  displayFaceBox = boxesArray => {
+    this.setState({ boxes: boxesArray });
   };
 
   onInputChange = event => {
@@ -98,8 +105,8 @@ class App extends Component {
 
   onSubmitPicture = () => {
     this.setState({ imageUrl: this.state.input });
-
-    fetch("https://secure-gorge-53800.herokuapp.com/imageurl", {
+    // "https://secure-gorge-53800.herokuapp.com/"
+    fetch("http://localhost:3000/imageurl", {
       method: "post",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -108,23 +115,27 @@ class App extends Component {
     })
       .then(response => response.json())
       .then(data => {
-        if (data) {
-          fetch("https://secure-gorge-53800.herokuapp.com/image", {
-            method: "put",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              id: this.state.user.id
+        if (data.outputs) {
+          this.displayFaceBox(this.calculateFaceLocation(data));
+          if (this.state.boxes.length) {
+            fetch("http://localhost:3000/image", {
+              method: "put",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                id: this.state.user.id
+              })
             })
-          })
-            .then(response => response.json())
-            .then(count => {
-              this.setState(Object.assign(this.state.user, { entries: count }));
-            })
-            .catch(err => {
-              console.log("Unable to get entries");
-            });
+              .then(response => response.json())
+              .then(count => {
+                this.setState(
+                  Object.assign(this.state.user, { entries: count })
+                ); //entries should be updated after faces detection
+              })
+              .catch(err => {
+                console.log("Unable to get entries");
+              });
+          }
         }
-        this.displayFaceBox(this.calculateFaceLocation(data));
       })
 
       .catch(err => {
@@ -133,7 +144,7 @@ class App extends Component {
   };
 
   render() {
-    const { route, isSignedIn, imageUrl, box } = this.state;
+    const { route, isSignedIn, imageUrl, boxes } = this.state;
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
@@ -153,7 +164,7 @@ class App extends Component {
               inputChange={this.onInputChange}
               submitPicture={this.onSubmitPicture}
             />
-            <FaceDetection imageUrl={imageUrl} box={box} />
+            <FaceDetection imageUrl={imageUrl} boxes={boxes} />
           </div>
         ) : this.state.route === "signin" ? (
           <div>

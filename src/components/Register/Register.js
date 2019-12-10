@@ -20,7 +20,7 @@ class Register extends React.Component {
     this.setState({ password: event.target.value });
   };
   onSubmitRegister = () => {
-    fetch("https://secure-gorge-53800.herokuapp.com/register", {
+    fetch("http://localhost:3000/register", {
       method: "post",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -37,7 +37,7 @@ class Register extends React.Component {
         }
       });
   };
- 
+
   render() {
     return (
       <article className="mw6 b--black-10 center w-100 shadow-5 br3 w-50-m w-25-1 mv4 ba ">

@@ -19,7 +19,7 @@ class SignIn extends Component {
   };
 
   onSubmitSignIn = () => {
-    fetch("https://secure-gorge-53800.herokuapp.com/signin", {
+    fetch("http://localhost:3000/signin", {
       method: "post",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -33,6 +33,7 @@ class SignIn extends Component {
           this.props.loadUser(user);
           this.props.onRouteChange("home");
         }
+        // give a response to the 'user' in case the credentials are wrong
       });
   };
 

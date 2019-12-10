@@ -1,7 +1,7 @@
 import React from "react";
 import "./FaceDetection.css";
 
-const FaceDetection = ({ imageUrl, box }) => {
+const FaceDetection = ({ imageUrl, boxes }) => {
   return (
     <div className="center ">
       <div className="ma4 absolute">
@@ -12,15 +12,22 @@ const FaceDetection = ({ imageUrl, box }) => {
           width="500px"
           height="auto"
         />
-        <div
-          className="bounding-box"
-          style={{
-            top: box.topRow,
-            bottom: box.bottomRow,
-            left: box.leftCol,
-            right: box.rightCol
-          }}
-        ></div>
+        {boxes.map((box, i) => {
+          console.log(box.topRow, box.bottomRow, box.leftCol, box.rightCol);
+
+          return (
+            <div
+              key={i}//replace by immutable value
+              className="bounding-box"
+              style={{
+                top: box.topRow,
+                bottom: box.bottomRow,
+                left: box.leftCol,
+                right: box.rightCol
+              }}
+            ></div>
+          );
+        })}
       </div>
     </div>
   );
